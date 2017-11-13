@@ -1,0 +1,18 @@
+[package]
+authors = ["Kornel <kornel@geekhood.net>"]
+categories = ["command-line-interface"]
+description = "Glob (wildcard) expanded command-line arguments on Windows"
+documentation = "https://docs.rs/wild"
+homepage = "https://gitlab.com/kornelski/wild#readme"
+keywords = ["wildcards", "glob", "windows", "shell", "CommandLineToArgvW"]
+license = "MIT"
+name = "wild"
+readme = "README.md"
+repository = "https://gitlab.com/kornelski/wild"
+version = "0.1.0"
+
+[target.'cfg(windows)'.dependencies]
+glob = "0.2.11"
+
+[dev-dependencies]
+glob = "0.2.11"
