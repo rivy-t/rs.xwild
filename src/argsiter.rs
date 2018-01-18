@@ -52,3 +52,19 @@ impl Iterator for Args {
         }
     }
 }
+
+#[test]
+fn finds_cargo_toml() {
+    let cmd = "foo.exe _not_?a?_[f]ilename_ \"_not_?a?_[p]attern_\" Cargo.tom?".chars().map(|c| c as u16).collect::<Vec<_>>();
+    let args = GlobArgs::new(unsafe {::std::mem::transmute(&cmd[..])});
+    let iter = Args {
+        args: Some(args),
+        current_arg_globs: None,
+    };
+    let args: Vec<_> = iter.map(|c| c.to_string_lossy().to_string()).collect();
+    assert_eq!(4, args.len());
+    assert_eq!("foo.exe", &args[0]);
+    assert_eq!("_not_?a?_[f]ilename_", &args[1]);
+    assert_eq!("_not_?a?_[p]attern_", &args[2]);
+    assert_eq!("Cargo.toml", &args[3]);
+}

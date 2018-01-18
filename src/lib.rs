@@ -98,6 +98,15 @@ fn parsed(s: &str) -> String {
     args.join(";")
 }
 
+#[cfg(test)]
+fn unquoted(s: &str) -> String {
+    let t: Vec<_> = s.encode_utf16().collect();
+    let args: Vec<_> = globiter::GlobArgs::new(&t)
+        .map(|s| s.text.to_string_lossy().to_string())
+        .collect();
+    args.join(";")
+}
+
 #[test]
 #[cfg(windows)]
 fn test_actual_args() {
@@ -113,9 +122,13 @@ fn test_parse_1() {
     assert_eq!(r#"*"#, parsed("*"));
     assert_eq!(r#"?"#, parsed("?"));
     assert_eq!(r#"quoted"#, parsed("\"quoted\""));
+    assert_eq!(r#"quoted"#, unquoted("\"quoted\""));
     assert_eq!(r#"[*]"#, parsed("\"*\""));
+    assert_eq!(r#"*"#, unquoted("\"*\""));
     assert_eq!(r#"[?]"#, parsed("\"?\""));
+    assert_eq!(r#"?"#, unquoted("\"?\""));
     assert_eq!(r#"[]]"#, parsed("\"]\""));
+    assert_eq!(r#"]"#, unquoted("\"]\""));
     assert_eq!(r#"quo"ted"#, parsed(r#"  "quo\"ted"  "#)); // backslash can escape quotes
     assert_eq!(r#"quo"ted?  "#, parsed(r#"  "quo""ted?"  "#)); // and quote can escape quotes
     assert_eq!(r#"unquo"ted"#, parsed(r#"  unquo\"ted  "#)); // backslash can escape quotes, even outside quotes
