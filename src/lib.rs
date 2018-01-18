@@ -65,8 +65,8 @@ pub fn args() -> Args {
 /// Windows-only, unstable.
 #[cfg(windows)]
 #[inline]
-pub fn globs() -> Option<GlobArgs<'static>> {
-    raw_command_line().map(|cmd| GlobArgs::new(cmd))
+fn globs() -> Option<globiter::GlobArgs<'static>> {
+    raw_command_line().map(|cmd| globiter::GlobArgs::new(cmd))
 }
 
 #[cfg(windows)]
