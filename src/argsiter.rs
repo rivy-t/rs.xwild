@@ -2,6 +2,7 @@ use globiter::*;
 use std::ffi::OsString;
 use glob;
 
+#[cfg_attr(test, allow(dead_code))]
 pub struct Args {
     pub(crate) args: Option<GlobArgs<'static>>,
     pub(crate) current_arg_globs: Option<glob::Paths>,

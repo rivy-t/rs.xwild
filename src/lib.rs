@@ -10,21 +10,19 @@
 //! Parsing of quoted arguments precisely follows Windows native syntax (`CommandLineToArgvW`, specifically)
 //! with all its weirdness.
 
-#[cfg(windows)]
+#[cfg(any(test,windows))]
 extern crate glob;
 
 #[cfg(any(test,windows))]
 mod parser;
 
-#[cfg(windows)]
+#[cfg(any(test,windows))]
 mod argsiter;
 #[cfg(windows)]
 pub use argsiter::*;
 
 #[cfg(any(test,windows))]
 mod globiter;
-#[cfg(any(test,windows))]
-pub use globiter::*;
 
 /// See `args()`
 #[cfg(not(windows))]
@@ -94,7 +92,7 @@ fn raw_command_line() -> Option<&'static [u16]> {
 #[cfg(test)]
 fn parsed(s: &str) -> String {
     let t: Vec<_> = s.encode_utf16().collect();
-    let args: Vec<_> = GlobArgs::new(&t)
+    let args: Vec<_> = globiter::GlobArgs::new(&t)
         .map(|s| s.to_string_lossy().to_string())
         .collect();
     args.join(";")

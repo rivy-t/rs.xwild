@@ -4,7 +4,7 @@ use parser;
 /// Iterator retuning glob-escaped arguments. Call `args()` to obtain it.
 #[must_use]
 #[derive(Debug)]
-pub struct GlobArgs<'a> {
+pub(crate) struct GlobArgs<'a> {
     line: &'a [u16],
 }
 
