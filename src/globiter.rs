@@ -1,6 +1,11 @@
 use std::ffi::OsString;
 use parser;
 
+pub(crate) struct Arg {
+    pub pattern: OsString,
+    pub text: OsString,
+}
+
 /// Iterator retuning glob-escaped arguments. Call `args()` to obtain it.
 #[must_use]
 #[derive(Debug)]
@@ -23,18 +28,24 @@ trait LossyOsStringExt {
 impl LossyOsStringExt for OsString {}
 
 impl<'a> Iterator for GlobArgs<'a> {
-    type Item = OsString;
+    type Item = Arg;
     fn next(&mut self) -> Option<Self::Item> {
-        let (arg, rest) = parser::next_arg(self.line, vec![], |arg, c, quoted| match c as u8 {
-            b'?' | b'*' | b'[' | b']' if quoted && c < 256 => {
-                arg.push(u16::from(b'['));
-                arg.push(c);
-                arg.push(u16::from(b']'));
-            },
-            _ => arg.push(c),
+        let (arg, rest) = parser::next_arg(self.line, (vec![], vec![]), |&mut (ref mut arg, ref mut text), c, quoted| {
+            text.push(c);
+            match c as u8 {
+                b'?' | b'*' | b'[' | b']' if quoted && c < 256 => {
+                    arg.push(u16::from(b'['));
+                    arg.push(c);
+                    arg.push(u16::from(b']'));
+                },
+                _ => arg.push(c),
+            };
         });
         self.line = rest;
-        arg.map(|arg| OsString::from_wide(&arg))
+        arg.map(|(pattern, text)| Arg {
+            pattern: OsString::from_wide(&pattern),
+            text: OsString::from_wide(&text),
+        })
     }
 }
 

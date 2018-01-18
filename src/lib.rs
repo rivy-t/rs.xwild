@@ -93,7 +93,7 @@ fn raw_command_line() -> Option<&'static [u16]> {
 fn parsed(s: &str) -> String {
     let t: Vec<_> = s.encode_utf16().collect();
     let args: Vec<_> = globiter::GlobArgs::new(&t)
-        .map(|s| s.to_string_lossy().to_string())
+        .map(|s| s.pattern.to_string_lossy().to_string())
         .collect();
     args.join(";")
 }

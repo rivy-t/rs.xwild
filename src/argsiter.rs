@@ -27,7 +27,7 @@ impl Iterator for Args {
             None => match self.args {
                 Some(ref mut args) => match args.next() {
                     // lossy: https://github.com/rust-lang-nursery/glob/issues/23
-                    Some(pattern) => match glob::glob(&pattern.to_string_lossy()) {
+                    Some(arg) => match glob::glob(&arg.pattern.to_string_lossy()) {
                         Ok(mut glob_iter) => {
                             let first_glob = first_non_error(&mut glob_iter);
                             self.current_arg_globs = Some(glob_iter);
@@ -36,13 +36,13 @@ impl Iterator for Args {
                                 None => {
                                     // non-matching patterns are passed as regular strings
                                     self.current_arg_globs = None;
-                                    Some(pattern) // FIXME: unescape it!
+                                    Some(arg.text)
                                 },
                             }
                         },
                         Err(_) => {
                             // Invalid patterns are passed as regular strings
-                            Some(pattern) // FIXME: unescape it!
+                            Some(arg.text)
                         },
                     },
                     None => None, // end of args
