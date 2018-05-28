@@ -70,7 +70,7 @@ fn globs() -> Option<globiter::GlobArgs<'static>> {
 }
 
 #[cfg(windows)]
-extern "C" {
+extern "system" {
     fn GetCommandLineW() -> *const u16;
 }
 
