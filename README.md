@@ -1,4 +1,4 @@
-# Wild::args for Rust
+# [Wild::args for Rust](https://crates.rs/crates/wild)
 
 Emulates glob (wildcard) argument expansion on Windows. No-op on other platforms.
 
