@@ -9,7 +9,7 @@ license = "MIT"
 name = "wild"
 readme = "README.md"
 repository = "https://gitlab.com/kornelski/wild"
-version = "1.0.0"
+version = "1.0.1"
 
 [badges]
 gitlab = { repository = "kornelski/wild" }
