@@ -9,6 +9,14 @@
 //!
 //! Parsing of quoted arguments precisely follows Windows native syntax (`CommandLineToArgvW`, specifically)
 //! with all its weirdness.
+//!
+//! ## Usage
+//!
+//! Use `wild::args()` instead of  `std::env::args()`.
+//!
+//! If you use [Clap](https://crates.rs/crates/clap), use `.get_matches_from(wild::args())` instead of `.get_matches()`.
+
+
 
 #[cfg(any(test,windows))]
 extern crate glob;
@@ -24,11 +32,14 @@ pub use argsiter::*;
 #[cfg(any(test,windows))]
 mod globiter;
 
-/// See `args()`
+/// Iterator of arguments. Equivalent to `std::env::Args`. See `args()` for details.
+///
+/// On unix it's an alias for `std::env::Args`.
+/// On Windows it's a custom iterator that implements glog expansion.
 #[cfg(not(windows))]
 pub type Args = std::env::Args;
 
-/// Returns iterator of glob-expanded command-line arguments
+/// Returns an iterator of glob-expanded command-line arguments. Equivalent of `std::env::args()`.
 ///
 /// On non-Windows platforms it returns `env::args()` as-is,
 /// assuming expansion has already been done by the shell.
@@ -42,7 +53,7 @@ pub fn args() -> Args {
     std::env::args()
 }
 
-/// Returns iterator of glob-expanded command-line arguments
+/// Returns an iterator of glob-expanded command-line arguments. Equivalent of `std::env::args()`.
 ///
 /// On Windows it emulates the glob expansion itself.
 /// The iterator will parse arguments incermentally and access

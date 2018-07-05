@@ -2,6 +2,7 @@ use globiter::*;
 use std::ffi::OsString;
 use glob;
 
+/// Windows replacement for `std::env::Args`
 #[cfg_attr(test, allow(dead_code))]
 pub struct Args {
     pub(crate) args: Option<GlobArgs<'static>>,

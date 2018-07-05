@@ -1,13 +1,35 @@
-# [Wild::args for Rust](https://crates.rs/crates/wild)
+# [`Wild::args`](https://crates.rs/crates/wild) for [Rust](https://www.rust-lang.org)
 
-Emulates glob (wildcard) argument expansion on Windows. No-op on other platforms.
+Allows Rust applications support wildcard arguments (`*foo*`, `file.???`, `*.log.[0-9]`, etc.) on command-line, uniformly on all platforms, including Windows.
 
-Unix shells expand command-line arguments like `a*`, `file.???` and pass them expanded to applications.
-On Windows `cmd.exe` doesn't do that, so this crate emulates the expansion there.
-Instead of `std::env::args()` use `wild::args()`.
+Unix shells automatically interpret wildcard arguments and pass them expanded (already converted to file names) to applications, but Windows' `cmd.exe` doesn't do that. For consistent cross-platform behavior, this crate emulates Unix-like expansion on Windows. You only need to use `wild::args()` instead of `std::env::args()`.
 
-The glob syntax on Windows is limited to `*`, `?`, and `[a-z]`/`[!a-z]` ranges.
-Glob characteres in quotes (`"*"`) are not expanded.
+It is more robust than using [`glob()`](https://crates.rs/crates/glob) on values from `std::env::args()`, because this crate is aware of argument quoting, and special characteres in quotes (`"*"`) are intentionally not expanded.
 
-Parsing of quoted arguments precisely follows Windows native syntax (`CommandLineToArgvW`, specifically)
-with all its weirdness.
+The glob syntax on Windows is limited to `*`, `?`, and `[a-z]`/`[!a-z]` ranges, as supported by the glob crate. Parsing of quoted arguments precisely follows Windows' native syntax ([`CommandLineToArgvW`][1], specifically).
+
+[1]: https://docs.microsoft.com/en-us/windows/desktop/api/shellapi/nf-shellapi-commandlinetoargvw
+
+## Usage
+
+`wild::args()` is a drop-in replacement for `std::env::args()`.
+
+```rust
+extern crate wild;
+
+fn main() {
+    let args = wild::args();
+    println!("The args are: {:?}", args.collect::<Vec<_>>());
+}
+```
+
+## Usage with [Clap](https://crates.rs/crates/clap)
+
+```rust
+let matches = clap::App::new("your_app")
+    .arg(…)
+    .arg(…)
+    .arg(…)
+    // .get_matches(); change to:
+    .get_matches_from(wild::args());
+```
