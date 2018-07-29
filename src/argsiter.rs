@@ -23,12 +23,13 @@ impl Iterator for Args {
     type Item = OsString;
 
     fn next(&mut self) -> Option<Self::Item> {
+        let glob_options = glob::MatchOptions { case_sensitive: false, ..Default::default() };
         match self.current_arg_globs.as_mut().and_then(first_non_error) {
             Some(path) => Some(path.into_os_string()),
             None => match self.args {
                 Some(ref mut args) => match args.next() {
                     // lossy: https://github.com/rust-lang-nursery/glob/issues/23
-                    Some(arg) => match glob::glob(&arg.pattern.to_string_lossy()) {
+                    Some(arg) => match glob::glob_with(&arg.pattern.to_string_lossy(), &glob_options) {
                         Ok(mut glob_iter) => {
                             let first_glob = first_non_error(&mut glob_iter);
                             self.current_arg_globs = Some(glob_iter);
@@ -68,4 +69,20 @@ fn finds_cargo_toml() {
     assert_eq!("_not_?a?_[f]ilename_", &args[1]);
     assert_eq!("_not_?a?_[p]attern_", &args[2]);
     assert_eq!("Cargo.toml", &args[3]);
+}
+
+#[test]
+fn finds_readme_case_insensitive() {
+    let cmd = "foo.exe _not_?a?_[f]ilename_ \"_not_?a?_[p]attern_\" read*.MD".chars().map(|c| c as u16).collect::<Vec<_>>();
+    let args = GlobArgs::new(unsafe {::std::mem::transmute(&cmd[..])});
+    let iter = Args {
+        args: Some(args),
+        current_arg_globs: None,
+    };
+    let args: Vec<_> = iter.map(|c| c.to_string_lossy().to_string()).collect();
+    assert_eq!(4, args.len());
+    assert_eq!("foo.exe", &args[0]);
+    assert_eq!("_not_?a?_[f]ilename_", &args[1]);
+    assert_eq!("_not_?a?_[p]attern_", &args[2]);
+    assert_eq!("README.md", &args[3]);
 }
