@@ -16,8 +16,6 @@
 //!
 //! If you use [Clap](https://crates.rs/crates/clap), use `.get_matches_from(wild::args())` instead of `.get_matches()`.
 
-
-
 #[cfg(any(test,windows))]
 extern crate glob;
 
@@ -32,42 +30,44 @@ pub use argsiter::*;
 #[cfg(any(test,windows))]
 mod globiter;
 
-/// Iterator of arguments. Equivalent to `std::env::Args`. See `args()` for details.
-///
-/// On unix it's an alias for `std::env::Args`.
-/// On Windows it's a custom iterator that implements glog expansion.
-#[cfg(not(windows))]
-pub type Args = std::env::Args;
+/// Argument iterator types.
+pub type _StringIter = Box<Iterator<Item=String>>;
+pub type _OsStringIter = Box<Iterator<Item=std::ffi::OsString>>;
 
-/// Returns an iterator of glob-expanded command-line arguments. Equivalent of `std::env::args()`.
+/// Returns an iterator of glob-expanded command-line arguments. Equivalent of `std::env::args()`/`std::env::args_os`.
 ///
-/// On non-Windows platforms it returns `env::args()` as-is,
+/// On non-Windows platforms it returns `std::env::args()`/`std::env::args_os()` as-is,
 /// assuming expansion has already been done by the shell.
 ///
 /// On Windows it emulates the glob expansion itself.
-/// The iterator will parse arguments incermentally and access
+/// The iterator will parse arguments incrementally and access
 /// the file system as it parses. This allows reading potentially huge lists of
 /// filenames, but it's not an atomic snapshot (use `.collect()` if you need that).
+///
+/// Note that `args()` (just as `std::env::args()`) will panic if OsString glob expansions are not convertible to normal Strings (UTF-8-type).
 #[cfg(not(windows))]
-pub fn args() -> Args {
-    std::env::args()
+pub fn args() -> _StringIter {
+    Box::new( std::env::args() )
+}
+#[cfg(not(windows))]
+pub fn args_os() -> _OsStringIter {
+    Box::new( std::env::args_os() )
 }
 
-/// Returns an iterator of glob-expanded command-line arguments. Equivalent of `std::env::args()`.
-///
-/// On Windows it emulates the glob expansion itself.
-/// The iterator will parse arguments incermentally and access
-/// the file system as it parses. This allows reading potentially huge lists of
-/// filenames, but it's not an atomic snapshot (use `.collect()` if you need that).
-///
-/// On non-Windows platforms it returns `env::args()` as-is,
-/// assuming expansion has already been done by the shell.
 #[cfg(windows)]
-pub fn args() -> Args {
-    Args {
-        args: globs(),
-        current_arg_globs: None,
-    }
+pub fn args() -> _StringIter {
+    Box::new(
+        args_os().map(|s| s.into_string().unwrap())
+    )
+}
+#[cfg(windows)]
+pub fn args_os() -> _OsStringIter {
+    Box::new(
+        Args {
+            args: globs(),
+            current_arg_globs: None,
+        }
+    )
 }
 
 /// Parses `GetCommandLineW` the same way as `CommandLineToArgvW`,
