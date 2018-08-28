@@ -2,10 +2,10 @@
 //!
 //! Unix shells expand command-line arguments like `a*`, `file.???` and pass them expanded to applications.
 //! On Windows `cmd.exe` doesn't do that, so this crate emulates the expansion there.
-//! Instead of `std::env::args()` use `wild::args()`.
+//! Instead of `std::env::args()` use `wild::args()`, and instead of `std::env::args_os()` use `wild::args_os()`.
 //!
 //! The glob syntax on Windows is limited to `*`, `?`, and `[a-z]`/`[!a-z]` ranges.
-//! Glob characteres in quotes (`"*"`) are not expanded.
+//! Glob characters in quotes (`"*"`) are not expanded.
 //!
 //! Parsing of quoted arguments precisely follows Windows native syntax (`CommandLineToArgvW`, specifically)
 //! with all its weirdness.
@@ -14,7 +14,9 @@
 //!
 //! Use `wild::args()` instead of  `std::env::args()`.
 //!
-//! If you use [Clap](https://crates.rs/crates/clap), use `.get_matches_from(wild::args())` instead of `.get_matches()`.
+//! Use `wild::args_os()` instead of  `std::env::args_os()`.
+//!
+//! If you use [clap](https://crates.rs/crates/clap), use `.get_matches_from(wild::args())` instead of `.get_matches()`.
 
 #[cfg(any(test,windows))]
 extern crate glob;
@@ -28,7 +30,7 @@ mod argsiter;
 #[cfg(any(test,windows))]
 mod globiter;
 
-/// Argument iterator types.
+// Iterator types
 type _StringIter = Box<Iterator<Item=String>>;
 type _OsStringIter = Box<Iterator<Item=std::ffi::OsString>>;
 
@@ -47,17 +49,31 @@ type _OsStringIter = Box<Iterator<Item=std::ffi::OsString>>;
 pub fn args() -> _StringIter {
     Box::new( std::env::args() )
 }
-#[cfg(not(windows))]
-pub fn args_os() -> _OsStringIter {
-    Box::new( std::env::args_os() )
-}
 
+/// Returns the program arguments (glob-expanded for Windows) as a [`String`] iterator.
+///
+/// Note that `args()` (just as `std::env::args()`) will panic if any argument (or respective glob expansion), as an [`OsString`], is not convertible to UTF-8 [`String`].
+///
+/// [`String`]: https://doc.rust-lang.org/std/string/struct.String.html
+/// [`OsString`]: https://doc.rust-lang.org/std/ffi/struct.OsString.html
 #[cfg(windows)]
 pub fn args() -> _StringIter {
     Box::new(
         args_os().map(|s| s.into_string().unwrap())
     )
 }
+
+/// Returns the program arguments (glob-expanded for Windows) as an [`OsString`](https://doc.rust-lang.org/std/ffi/struct.OsString.html) iterator.
+/// # fn args_os()
+#[cfg(not(windows))]
+pub fn args_os() -> _OsStringIter {
+    Box::new( std::env::args_os() )
+}
+
+/// Returns the program arguments (glob-expanded for Windows) as an [`OsString`] iterator.
+///
+/// [`String`]: https://doc.rust-lang.org/std/string/struct.String.html
+/// [`OsString`]: https://doc.rust-lang.org/std/ffi/struct.OsString.html
 #[cfg(windows)]
 pub fn args_os() -> _OsStringIter {
     use argsiter::Args;
