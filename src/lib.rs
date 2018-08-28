@@ -24,15 +24,13 @@ mod parser;
 
 #[cfg(any(test,windows))]
 mod argsiter;
-#[cfg(windows)]
-pub use argsiter::*;
 
 #[cfg(any(test,windows))]
 mod globiter;
 
 /// Argument iterator types.
-pub type _StringIter = Box<Iterator<Item=String>>;
-pub type _OsStringIter = Box<Iterator<Item=std::ffi::OsString>>;
+type _StringIter = Box<Iterator<Item=String>>;
+type _OsStringIter = Box<Iterator<Item=std::ffi::OsString>>;
 
 /// Returns an iterator of glob-expanded command-line arguments. Equivalent of `std::env::args()`/`std::env::args_os`.
 ///
@@ -62,6 +60,7 @@ pub fn args() -> _StringIter {
 }
 #[cfg(windows)]
 pub fn args_os() -> _OsStringIter {
+    use argsiter::Args;
     Box::new(
         Args {
             args: globs(),
